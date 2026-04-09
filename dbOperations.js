@@ -22,6 +22,17 @@ export const isExisting = async(username)=>{
     }
 };
 
+export const doesEmailExist = async(email) =>{
+    try{
+        const result = await pool.query("SELECT EXISTS(SELECT 1 FROM new_user WHERE email=$1",[email]);
+        return result.rows[0].exists;
+    }
+    catch(error){
+        console.error("Error in doesEmailExist: ", error.message);
+        throw error;
+    }
+};
+
 export const getUser = async(username)=>{
     try{
         const result = await pool.query("SELECT * FROM new_user WHERE username=$1",[username]);

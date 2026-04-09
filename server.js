@@ -5,6 +5,7 @@ import {
     createNewUser,
     getUser,
     isExisting,
+    doesEmailExist
 } from './dbOperations.js';
 
 
@@ -24,15 +25,16 @@ app.post("/newuser", async(req, res) =>{
             return res.status(400).json({ error: "All fields are required" });
         }
         const exists = await isExisting(username);
+        const emailExists = await doesEmailExist(email);
 
         if(exists){
             return res.status(409).json({ error: "Username is already taken" });
         }
+        if(emailExists){
+            return res.status(409).json({error: "Email is already in use"});
+        }
         await createNewUser(username, email, password);
-
-       
-            res.status(201).json({ success: true, message: "Account created!" });
-       
+        res.status(201).json({ success: true, message: "Account created!" });  
     }
     catch(error){
         console.error('Error in POST /newuser:', error.message);
@@ -45,14 +47,13 @@ app.get("/newuser/:username", async(req,res)=>{
         const user = await getUser(req.params.username);
         if (!user) return res.status(404).json({ error: "User not found" });
         res.json(user);
-
     }
     catch(error){
          console.error('Error in GET /newuser/:username:', error.message);
         res.status(500).json({ error: "Failed to create user" });
-
     }
 });
+
 
 
 app.listen(PORT, () => {

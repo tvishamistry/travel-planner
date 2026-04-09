@@ -12,9 +12,14 @@ function Signup(){
     const handleSignUp = async(e)=>{
         e.preventDefault()
         setLoading(true)
+        if(!username || !email || !password){
+            setError("All fields must be filled out");
+        }
+        if(password.length < 8){
+            setError("Password must be 8 characters minimum");
+        }
         try{
             await createAccount();
-
         }
         catch(error){
             setError("an error occured");
@@ -35,7 +40,6 @@ function Signup(){
         if (!response.ok) {
             throw new Error(data.error || 'Failed to create account');
         }
-
         if(data.success){
             const userResult = await fetch(`http://localhost:8000/newuser/${username}`);
             const user = await userResult.json();
@@ -43,14 +47,8 @@ function Signup(){
             navigate("/dashboard");
 
         }
-
-        
         return data;
     }
-
-   
-
-
     return(
         <div>
             <form onSubmit = {handleSignUp}className="max-w-md m-auto pt-24" >
