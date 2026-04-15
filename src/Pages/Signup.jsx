@@ -42,11 +42,9 @@ function Signup() {
     const data = await response.json();
 
     if (!response.ok) {
-        // This will now catch that 409 Conflict properly
         throw new Error(data.error || 'Failed to create account');
     }
 
-    // data.user should contain the user object sent back by your backend
     if (data.success) {
      const userToSave = data.user || data; 
     sessionStorage.setItem("currentUser", JSON.stringify(userToSave));
