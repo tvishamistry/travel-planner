@@ -23,7 +23,7 @@ function Login() {
 
     const loginToAccount = async () => {
         setLoading(true);
-        const response = await fetch('http://localhost:8000/login', {
+        const response = await fetch('https://didactic-zebra-r4vvqrpw6vjxfpjrq-8000.app.github.dev//login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })

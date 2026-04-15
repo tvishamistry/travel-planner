@@ -3,7 +3,7 @@ import pool from "./dbConfig.js";
 export const createNewUser = async (username, email, password) => {
     try {
         const [result] = await pool.query(
-            "INSERT INTO new_user (username, email, pass) VALUES (?, ?, ?)",
+            "INSERT INTO new_user (username, email, password) VALUES (?, ?, ?)",
             [username, email, password]
         );
         return result;

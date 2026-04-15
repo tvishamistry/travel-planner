@@ -15,7 +15,12 @@ dotenv.config();
 const PORT = process.env.PORT || 8000;
 const app  = express();
 
-app.use(cors());
+app.use(cors({
+    origin: 'https://didactic-zebra-r4vvqrpw6vjxfpjrq-5173.app.github.dev',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
+
 app.use(express.json());
 
 

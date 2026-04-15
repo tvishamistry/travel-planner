@@ -33,24 +33,28 @@ function Signup() {
     };
 
     const createAccount = async () => {
-        const response = await fetch("http://localhost:8000/newuser", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, email, password })
-        });
-        const data = await response.json();
+    const response = await fetch("https://didactic-zebra-r4vvqrpw6vjxfpjrq-8000.app.github.dev/newuser", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password })
+    });
 
-        if (!response.ok) {
-            throw new Error(data.error || 'Failed to create account');
-        }
-        if (data.success) {
-            const userResult = await fetch(`http://localhost:8000/newuser/${username}`);
-            const user = await userResult.json();
-            sessionStorage.setItem("currentUser", JSON.stringify(user));
-            navigate("/dashboard");
-        }
-        return data;
-    };
+    const data = await response.json();
+
+    if (!response.ok) {
+        // This will now catch that 409 Conflict properly
+        throw new Error(data.error || 'Failed to create account');
+    }
+
+    // data.user should contain the user object sent back by your backend
+    if (data.success) {
+     const userToSave = data.user || data; 
+    sessionStorage.setItem("currentUser", JSON.stringify(userToSave));
+    navigate("/dashboard");
+    }
+    return data;
+};
+
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
