@@ -1,61 +1,102 @@
-import {useState} from 'react';
-import {useNavigate} from 'react';
-function Login(){
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 
+function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleLogin = async() =>{
-        if(!username || !password){
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        if (!username || !password) {
             setError("All fields must be filled out");
+            return;
         }
-        try{
-           await loginToAccount();
+        try {
+            await loginToAccount();
+        } catch (error) {
+            console.error("Error logging into account: ", error.message);
         }
-        catch(error){
-            console.error("Error logging into account: ", error.message)
-        }
+    };
 
-    }
-    const loginToAccount = async() => {
-    const response = await fetch('http://localhost:8000/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            username: username,  
-            password: password
-        })
-           
-    });
-    if(response.ok){
-            const user = await userResult.json();
-            sessionStorage.setItem("currentUser", JSON.stringify(user));
+    const loginToAccount = async () => {
+        setLoading(true);
+        const response = await fetch('http://localhost:8000/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            sessionStorage.setItem("currentUser", JSON.stringify(data.user));
             navigate("/dashboard");
-
+        } else {
+            setError(data.error || "Login failed");
         }
-    }
-    return(
-         <div>
-            <form onSubmit = {handleLogin}className="max-w-md m-auto pt-24" >
-                <h2 className = "font-bold pb-2">Sign up today!</h2>
-                <p>Already have an account? <Link to="/login">Login</Link></p>
-                <div className = "flex flex-col py-4">
-                    <input onChange = {(e) => setUsername(e.target.value)}placeholder = "username"className = "p-3 mt-4 border-2" type = "username" />
-                    <input onChange = {(e) => setPassword(e.target.value)}placeholder = "password"className = "p-3 mt-4 border-2" type = "password" />
-                    <button type = "submit" disabled = {loading} className = "mt-4 w-full">Sign up</button>
-                    {error &&<p className = "text-red-600 text-center pt-4">{error}</p>}
+        setLoading(false);
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+            <div className="w-full max-w-md">
+
+                {/* Logo */}
+                <div className="flex items-center justify-center gap-2 mb-8">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                    <span className="text-xl font-semibold text-gray-900 tracking-tight">Travel Planner</span>
                 </div>
-            </form>
 
+                {/* Card */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-8 py-10">
+                    <h2 className="text-2xl font-semibold text-gray-900 mb-1">Welcome back</h2>
+                    <p className="text-sm text-gray-500 mb-8">
+                        Don't have an account?{" "}
+                        <Link to="/" className="text-emerald-600 hover:underline font-medium">Sign up</Link>
+                    </p>
+
+                    <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-gray-600">Username</label>
+                            <input
+                                onChange={(e) => setUsername(e.target.value)}
+                                placeholder="Enter your username"
+                                type="text"
+                                className="w-full text-gray-900 px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-gray-600">Password</label>
+                            <input
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Enter your password"
+                                type="password"
+                                className="w-full text-gray-900 px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                            />
+                        </div>
+
+                        {error && (
+                            <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-center">
+                                {error}
+                            </p>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="mt-2 w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+                        >
+                            {loading ? "Logging in..." : "Login"}
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
-
     );
-
-
 }
 
 export default Login;

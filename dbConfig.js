@@ -1,18 +1,15 @@
-import pkg from 'pg';
-const { Pool } = pkg;
+import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 
 dotenv.config();
-const pool = new Pool({
-    user: "postgres",
-    password: "MvishaTistry07",
-    database: "travel-planner-database",
-    host: "localhost",
-    port: 5432
-});
 
-pool.connect()
-    .then(() => console.log('Database connected'))
-    .catch(err => console.error('Database not connected', err));
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT || 3306,
+    waitForConnections: true,
+});
 
 export default pool;

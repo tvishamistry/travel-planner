@@ -1,36 +1,39 @@
-import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-function Signup(){
-    const[email,setEmail] = useState("");
-    const[username, setUsername] = useState("");
-    const[password,setPassword] = useState("");
-    const[loading, setLoading] = useState(false);
-    const[error, setError] = useState("");
+import { useNavigate, Link } from 'react-router-dom';
+
+function Signup() {
+    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const handleSignUp = async(e)=>{
-        e.preventDefault()
-        setLoading(true)
-        if(!username || !email || !password){
+    const handleSignUp = async (e) => {
+        e.preventDefault();
+        setError("");
+
+        if (!username || !email || !password) {
             setError("All fields must be filled out");
+            return;
         }
-        if(password.length < 8){
+        if (password.length < 8) {
             setError("Password must be 8 characters minimum");
+            return;
         }
-        try{
+
+        setLoading(true);
+        try {
             await createAccount();
-        }
-        catch(error){
-            setError("an error occured");
-        }
-        finally{
+        } catch (error) {
+            setError(error.message || "An error occurred");
+        } finally {
             setLoading(false);
         }
     };
 
-    const createAccount = async() =>{
-     const response = await fetch("http://localhost:8000/newuser", {
+    const createAccount = async () => {
+        const response = await fetch("http://localhost:8000/newuser", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, email, password })
@@ -40,31 +43,82 @@ function Signup(){
         if (!response.ok) {
             throw new Error(data.error || 'Failed to create account');
         }
-        if(data.success){
+        if (data.success) {
             const userResult = await fetch(`http://localhost:8000/newuser/${username}`);
             const user = await userResult.json();
             sessionStorage.setItem("currentUser", JSON.stringify(user));
             navigate("/dashboard");
-
         }
         return data;
-    }
-    return(
-        <div>
-            <form onSubmit = {handleSignUp}className="max-w-md m-auto pt-24" >
-                <h2 className = "font-bold pb-2">Sign up today!</h2>
-                <p>Already have an account? <Link to="/login">Login</Link></p>
-                <div className = "flex flex-col py-4">
-                    <input onChange = {(e) => setUsername(e.target.value)}placeholder = "username"className = "p-3 mt-4 border-2" type = "username" />
-                    <input onChange = {(e) => setEmail(e.target.value)}placeholder = "email"className = "p-3 mt-4 border-2" type = "email" />
-                    <input onChange = {(e) => setPassword(e.target.value)}placeholder = "password"className = "p-3 mt-4 border-2" type = "password" />
-                    <button type = "submit" disabled = {loading} className = "mt-4 w-full">Sign up</button>
-                    {error &&<p className = "text-red-600 text-center pt-4">{error}</p>}
-                </div>
-            </form>
+    };
 
+    return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+            <div className="w-full max-w-md">
+
+                {/* Logo */}
+                <div className="flex items-center justify-center gap-2 mb-8">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                    <span className="text-xl font-semibold text-gray-900 tracking-tight">Travel Planner</span>
+                </div>
+
+                {/* Card */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-8 py-10">
+                    <h2 className="text-2xl font-semibold text-gray-900 mb-1">Create an account</h2>
+                    <p className="text-sm text-gray-500 mb-8">
+                        Already have an account?{" "}
+                        <Link to="/login" className="text-emerald-600 hover:underline font-medium">Login</Link>
+                    </p>
+
+                    <form onSubmit={handleSignUp} className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-gray-600">Username</label>
+                            <input
+                                onChange={(e) => setUsername(e.target.value)}
+                                placeholder="Choose a username"
+                                type="text"
+                                className="w-full text-gray-900 px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-gray-600">Email</label>
+                            <input
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter your email"
+                                type="email"
+                                className="w-full text-gray-900 px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-gray-600">Password</label>
+                            <input
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Min. 8 characters"
+                                type="password"
+                                className="w-full text-gray-900 px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                            />
+                        </div>
+
+                        {error && (
+                            <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-center">
+                                {error}
+                            </p>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="mt-2 w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+                        >
+                            {loading ? "Creating account..." : "Sign up"}
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     );
-
 }
+
 export default Signup;

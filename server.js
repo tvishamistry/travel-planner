@@ -18,6 +18,33 @@ const app  = express();
 app.use(cors());
 app.use(express.json());
 
+
+app.post("/login", async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({ error: "All fields are required" });
+        }
+
+        const user = await getUser(username);
+
+        if (!user) {
+            return res.status(401).json({ error: "Invalid username or password" });
+        }
+
+        if (user.pass !== password) {
+            return res.status(401).json({ error: "Invalid username or password" });
+        }
+
+        res.status(200).json({ success: true, user });
+
+    } catch (error) {
+        console.error('Error in POST /login:', error.message);
+        res.status(500).json({ error: "Failed to login" });
+    }
+});
+
 app.post("/newuser", async(req, res) =>{
     try{
         const {username, email, password} = req.body;
