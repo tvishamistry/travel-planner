@@ -112,7 +112,7 @@ app.post("/friends/request", async (req, res) => {
 
 app.put("/friends/request/:id", async (req, res) => {
     try {
-        const { status } = req.body; // 'accepted' or 'rejected'
+        const { status } = req.body; 
         if (!['accepted', 'rejected'].includes(status))
             return res.status(400).json({ error: "Invalid status" });
         await respondToFriendRequest(req.params.id, status);
@@ -153,7 +153,6 @@ app.get("/friends/:username/sent", async (req, res) => {
     }
 });
 
-// ─── TRIPS ROUTES ────────────────────────────────────────────
 
 app.post("/trips", async (req, res) => {
     try {

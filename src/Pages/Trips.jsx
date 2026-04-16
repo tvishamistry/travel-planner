@@ -268,7 +268,6 @@ function TripDetail({ tripId, currentUser, onBack }) {
             )}
 
             <div className="grid grid-cols-3 gap-4">
-                {/* Itinerary */}
                 <div className="col-span-2">
                     <div className="bg-white border border-gray-100 rounded-xl p-5">
                         <h2 className="text-sm font-medium text-gray-900 mb-4">Itinerary</h2>

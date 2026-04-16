@@ -58,13 +58,11 @@ function Signup() {
         <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
             <div className="w-full max-w-md">
 
-                {/* Logo */}
                 <div className="flex items-center justify-center gap-2 mb-8">
                     <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                     <span className="text-xl font-semibold text-gray-900 tracking-tight">Travel Planner</span>
                 </div>
 
-                {/* Card */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-8 py-10">
                     <h2 className="text-2xl font-semibold text-gray-900 mb-1">Create an account</h2>
                     <p className="text-sm text-gray-500 mb-8">

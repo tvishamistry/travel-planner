@@ -51,7 +51,6 @@ export const getUser = async (username) => {
         throw error;
     }
 };
-// ─── FRIENDS ────────────────────────────────────────────────
 
 export const sendFriendRequest = async (senderUsername, receiverUsername) => {
     try {
@@ -132,7 +131,6 @@ export const getSentRequests = async (username) => {
     }
 };
 
-// ─── TRIPS ──────────────────────────────────────────────────
 
 export const createTrip = async (name, description, destination, startDate, endDate, ownerUsername) => {
     try {
@@ -141,7 +139,6 @@ export const createTrip = async (name, description, destination, startDate, endD
              VALUES (?, ?, ?, ?, ?, ?)`,
             [name, description, destination, startDate, endDate, ownerUsername]
         );
-        // Also add owner as a collaborator with role 'owner'
         await pool.query(
             `INSERT INTO trip_collaborators (trip_id, username, role) VALUES (?, ?, 'owner')`,
             [result.insertId, ownerUsername]
