@@ -32,9 +32,11 @@ function Login() {
         const data = await response.json();
 
         if (response.ok) {
-            sessionStorage.setItem("currentUser", JSON.stringify(data.user));
-            navigate("/dashboard");
-        } else {
+    const userToSave = data.user || data; 
+    sessionStorage.setItem("currentUser", JSON.stringify(userToSave));
+    navigate("/dashboard");
+}
+        else {
             setError(data.error || "Login failed");
         }
         setLoading(false);

@@ -41,7 +41,7 @@ app.post("/login", async (req, res) => {
             return res.status(401).json({ error: "Invalid username or password" });
         }
 
-        if (user.pass !== password) {
+        if (user.password !== password) {
             return res.status(401).json({ error: "Invalid username or password" });
         }
 
@@ -69,7 +69,8 @@ app.post("/newuser", async(req, res) =>{
             return res.status(409).json({error: "Email is already in use"});
         }
         await createNewUser(username, email, password);
-        res.status(201).json({ success: true, message: "Account created!" });  
+        const user = await getUser(username);
+        res.status(201).json({ success: true, user }); 
     }
     catch(error){
         console.error('Error in POST /newuser:', error.message);
