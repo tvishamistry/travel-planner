@@ -88,7 +88,6 @@ function Friends({ currentUser }) {
         <div className="max-w-2xl mx-auto">
             <h1 className="text-2xl font-semibold text-gray-900 mb-6">Friends</h1>
 
-            {/* Tabs */}
             <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
                 {[
                     { key: "friends", label: "My Friends" },
@@ -109,7 +108,6 @@ function Friends({ currentUser }) {
                 ))}
             </div>
 
-            {/* Friends List */}
             {tab === "friends" && (
                 <div className="space-y-2">
                     {friends.length === 0 ? (
@@ -131,7 +129,6 @@ function Friends({ currentUser }) {
                 </div>
             )}
 
-            {/* Pending Requests */}
             {tab === "pending" && (
                 <div className="space-y-2">
                     {pending.length === 0 ? (
@@ -168,7 +165,6 @@ function Friends({ currentUser }) {
                 </div>
             )}
 
-            {/* Search */}
             {tab === "search" && (
                 <div>
                     <div className="flex gap-2 mb-4">

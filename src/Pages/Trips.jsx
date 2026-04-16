@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 
 const BASE = "https://didactic-zebra-r4vvqrpw6vjxfpjrq-8000.app.github.dev";
 
-// ── helpers ───────────────────────────────────────────────────
 const TIME_OPTIONS = ["Morning", "Afternoon", "Evening", "Night", "All day"];
 
 function formatDate(d) {
@@ -16,7 +15,6 @@ function tripDays(start, end) {
     return Math.max(1, Math.round(diff) + 1);
 }
 
-// ── Sub-components ────────────────────────────────────────────
 
 function CreateTripModal({ currentUser, onClose, onCreated }) {
     const [form, setForm] = useState({ name: "", description: "", destination: "", startDate: "", endDate: "" });
@@ -44,9 +42,9 @@ function CreateTripModal({ currentUser, onClose, onCreated }) {
 
                 <div className="space-y-3">
                     {[
-                        { label: "Trip name *", key: "name", placeholder: "e.g. Europe Summer 2025" },
-                        { label: "Destination", key: "destination", placeholder: "e.g. Paris, France" },
-                        { label: "Description", key: "description", placeholder: "What's this trip about?" },
+                        { label: "Trip name *", key: "name", placeholder: "Trip Name" },
+                        { label: "Destination", key: "destination", placeholder: "Destination" },
+                        { label: "Description", key: "description", placeholder: "Description" },
                     ].map(({ label, key, placeholder }) => (
                         <div key={key} className="flex flex-col gap-1">
                             <label className="text-xs font-medium text-gray-600">{label}</label>
@@ -151,9 +149,9 @@ function AddItineraryModal({ tripId, maxDay, currentUser, onClose, onAdded }) {
                         </div>
                     </div>
                     {[
-                        { label: "Title *", key: "title", placeholder: "e.g. Visit Eiffel Tower" },
-                        { label: "Location", key: "location", placeholder: "e.g. Champ de Mars, Paris" },
-                        { label: "Notes", key: "description", placeholder: "Any details..." },
+                        { label: "Title *", key: "title", placeholder: "Explain" },
+                        { label: "Location", key: "location", placeholder: "Location" },
+                        { label: "Notes", key: "description", placeholder: "Details" },
                     ].map(({ label, key, placeholder }) => (
                         <div key={key} className="flex flex-col gap-1">
                             <label className="text-xs font-medium text-gray-600">{label}</label>
@@ -242,7 +240,6 @@ function TripDetail({ tripId, currentUser, onBack }) {
                 />
             )}
 
-            {/* Header */}
             <div className="flex items-start justify-between mb-6">
                 <div>
                     <button onClick={onBack} className="text-xs text-gray-400 hover:text-gray-600 mb-2 flex items-center gap-1 transition-colors">
@@ -276,7 +273,6 @@ function TripDetail({ tripId, currentUser, onBack }) {
                     <div className="bg-white border border-gray-100 rounded-xl p-5">
                         <h2 className="text-sm font-medium text-gray-900 mb-4">Itinerary</h2>
 
-                        {/* Day tabs */}
                         {numDays > 1 && (
                             <div className="flex gap-1 mb-4 flex-wrap">
                                 {Array.from({ length: numDays }, (_, i) => i + 1).map(d => (
@@ -330,7 +326,6 @@ function TripDetail({ tripId, currentUser, onBack }) {
                     </div>
                 </div>
 
-                {/* Collaborators */}
                 <div className="space-y-4">
                     <div className="bg-white border border-gray-100 rounded-xl p-5">
                         <h2 className="text-sm font-medium text-gray-900 mb-4">Travelers</h2>
@@ -386,7 +381,6 @@ function TripDetail({ tripId, currentUser, onBack }) {
     );
 }
 
-// ── Main Trips page ───────────────────────────────────────────
 
 function Trips({ currentUser }) {
     const [trips, setTrips] = useState([]);
