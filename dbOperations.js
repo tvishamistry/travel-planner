@@ -177,6 +177,29 @@ export const getTripById = async (tripId) => {
     }
 };
 
+//packingItems db ops
+export const createPackingItems = async(name, bringer)=>{
+    try{
+        const [result] = await pool.query(`INSERT INTO packing_items (name, bringer) VALUES (?,?)`,[name, bringer]);
+        return result;
+    }
+    catch(error){
+        console.error("Error in createPackingItems", error.message);
+        throw error;
+    }
+};
+
+export const getPackingItems = async (tripId) =>{
+    try{
+        const [rows] = await pool.query("SELECT * FROM packing_items WHERE trip_id =?",[tripId]);
+        return rows;
+    }
+    catch(error){
+        console.error("Error in getPackingItems", error.message);
+        throw error;
+    }
+};
+
 export const getTripCollaborators = async (tripId) => {
     try {
         const [rows] = await pool.query(

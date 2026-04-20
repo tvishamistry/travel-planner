@@ -7,7 +7,7 @@ import {
     getPendingRequests, getSentRequests,
     createTrip, getUserTrips, getTripById, getTripCollaborators,
     addCollaborator, removeCollaborator,
-    addItineraryItem, getItineraryItems, deleteItineraryItem, deleteTrip
+    addItineraryItem, getItineraryItems, deleteItineraryItem, deleteTrip, createPackingItems, getPackingItems
 } from './dbOperations.js';
 
 
@@ -187,6 +187,21 @@ app.get("/trips/:tripId", async (req, res) => {
     } catch (error) {
         console.error("Error in GET /trips/:tripId:", error.message);
         res.status(500).json({ error: "Failed to fetch trip" });
+    }
+});
+
+//packingItems Route
+app.get("/trips/packingItems/:tripId", async(req,res) =>{
+    try{
+        const trip = await getTripById(req.params.tripId);
+        if(!trip) return res.status(400).json({error: "Error in finding trip"});
+        const tripCollaborators = await getTripCollaborators(req.params.tripId);
+        const packingItems = await getPackingItems(req.params.tripId);
+        res.json({...trip, tripCollaborators, packingItems  })
+    }
+    catch(error){
+        console.error("Error in GET /trips/packingItems/:tripId", error.message);
+        res.status(500).json({error: "Failed to fetch packingItems for trip"});
     }
 });
 

@@ -4,6 +4,7 @@ import Signup from "./Pages/Signup";
 import Dashboard from "./Pages/Dashboard";
 import Friends from "./Pages/Friends";
 import Trips from "./Pages/Trips";
+import Packing from "./Pages/Packing";
 
 function App(){
 
@@ -15,8 +16,7 @@ function App(){
           <Route path = "/dashboard" element = {<Dashboard/>}/>
           <Route path = "/friends" element = {<Friends/>}/>
           <Route path = "/trips" element = {<Trips/>}/>
-
-
+          <Route path = "/packing" element = {<Packing/>}/>
         </Routes>
       </BrowserRouter>
   );

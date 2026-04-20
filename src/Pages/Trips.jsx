@@ -259,6 +259,7 @@ function TripDetail({ tripId, currentUser, onBack }) {
                 >
                     + Add to itinerary
                 </button>
+                
             </div>
 
             {trip.description && (
