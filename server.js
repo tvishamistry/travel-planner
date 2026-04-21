@@ -2,12 +2,29 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import {
-    createNewUser, getUser, isExisting, doesEmailExist,
-    sendFriendRequest, respondToFriendRequest, getFriends,
-    getPendingRequests, getSentRequests,
-    createTrip, getUserTrips, getTripById, getTripCollaborators,
-    addCollaborator, removeCollaborator,
-    addItineraryItem, getItineraryItems, deleteItineraryItem, deleteTrip, createPackingItems, getPackingItems
+    createNewUser, 
+    getUser, 
+    isExisting, 
+    doesEmailExist,
+    sendFriendRequest, 
+    respondToFriendRequest, 
+    getFriends,
+    getPendingRequests, 
+    getSentRequests,
+    createTrip, 
+    getUserTrips, 
+    getTripById, 
+    getTripCollaborators,
+    addCollaborator, 
+    removeCollaborator,
+    addItineraryItem, 
+    getItineraryItems, 
+    deleteItineraryItem, 
+    deleteTrip, 
+    createPackingItems, 
+    getPackingItems,
+    deletePackingItem,
+    getPersonalPackingItems
 } from './dbOperations.js';
 
 
@@ -27,6 +44,7 @@ app.use(cors({
 app.use(express.json());
 
 
+//login routes
 app.post("/login", async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -90,6 +108,7 @@ app.get("/newuser/:username", async(req,res)=>{
     }
 });
 
+//friends routes
 app.post("/friends/request", async (req, res) => {
     try {
         const { senderUsername, receiverUsername } = req.body;
@@ -153,7 +172,7 @@ app.get("/friends/:username/sent", async (req, res) => {
     }
 });
 
-
+//trips routes
 app.post("/trips", async (req, res) => {
     try {
         const { name, description, destination, startDate, endDate, ownerUsername } = req.body;
@@ -190,20 +209,6 @@ app.get("/trips/:tripId", async (req, res) => {
     }
 });
 
-//packingItems Route
-app.get("/trips/packingItems/:tripId", async(req,res) =>{
-    try{
-        const trip = await getTripById(req.params.tripId);
-        if(!trip) return res.status(400).json({error: "Error in finding trip"});
-        const tripCollaborators = await getTripCollaborators(req.params.tripId);
-        const packingItems = await getPackingItems(req.params.tripId);
-        res.json({...trip, tripCollaborators, packingItems  })
-    }
-    catch(error){
-        console.error("Error in GET /trips/packingItems/:tripId", error.message);
-        res.status(500).json({error: "Failed to fetch packingItems for trip"});
-    }
-});
 
 app.post("/trips/:tripId/collaborators", async (req, res) => {
     try {
@@ -225,6 +230,60 @@ app.delete("/trips/:tripId/collaborators/:username", async (req, res) => {
     } catch (error) {
         console.error("Error in DELETE /trips/:tripId/collaborators/:username:", error.message);
         res.status(500).json({ error: "Failed to remove collaborator" });
+    }
+});
+
+//packingItems routes
+app.get("/trips/packingItems/:tripId", async(req,res) =>{
+    try{
+        const trip = await getTripById(req.params.tripId);
+        if(!trip) return res.status(400).json({error: "Error in finding trip"});
+        const tripCollaborators = await getTripCollaborators(req.params.tripId);
+        const packingItems = await getPackingItems(req.params.tripId);
+        res.json({...trip, tripCollaborators, packingItems  })
+    }
+    catch(error){
+        console.error("Error in GET /trips/packingItems/:tripId", error.message);
+        res.status(500).json({error: "Failed to fetch packingItems for trip"});
+    }
+});
+
+app.get("/trips/:tripId/packingItems/:username", async(req,res) =>{
+    try{
+        const trip = await getTripById(req.params.tripId);
+        const user = await getUser(req.params.username);
+        if(!trip || !user) {
+            return res.status(400).json({error: "Error in finding trip or username"});
+        }
+        const packingItems = await getPersonalPackingItems(req.params.tripId, req.params.username);
+        res.json({...trip, username, packingItems});
+    }
+    catch(error){
+        console.error("Error in GET /trips/:tripId/packingItems/:username", error.message);
+        res.status(500).json({error: "Failed to fetch personalPackingItems for user for trip"});
+    }
+});
+
+app.post("/trips/addPackingItems/:tripId", async(req,res) =>{
+    try{
+        const {packingItem} = req.body;
+        await createPackingItems(req.params.tripId, packingItem);
+        res.status(201).json({success: true});
+    }
+    catch(error){
+        console.error("Error in POST /trips/:addPackingItems/:tripId");
+        res.status(500).json({error: "Failed to add packing item"});
+    }
+});
+
+app.delete("/trips/deletePackingItem/:tripId", async(req,res) =>{
+    try{
+        await deletePackingItem(req.params.tripId);
+        res.json({success: true});
+    }
+    catch(error){
+        console.error("Error in DELETE /trips/deletePackingItem/:tripId", error.message);
+        res.status(500).json({error: "Failed to delete trip item"});
     }
 });
 

@@ -10,9 +10,16 @@ function Packing({tripId, currentUser}){
     const [packingItems, setPackingItems] = useState(null);
 
     const fetchTrip = async()=>{
-        const res = await fetch(`${BASE}/trips/${tripId}`);
+        const res = await fetch(`${BASE}/trips/${trip.id}`);
         const data = await res.json();
         setTrip(data);
+        setLoading(false);
+    };
+
+    const fetchPackingItems = async()=>{
+        const res = await fetch(`${BASE}/trips/packingItems/${trip.id}`)
+        const data = await res.json();
+        setPackingItems(data);
         setLoading(false);
     };
 

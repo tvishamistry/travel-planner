@@ -1,5 +1,6 @@
 import pool from "./dbConfig.js";
 
+//new_user db ops
 export const createNewUser = async (username, email, password) => {
     try {
         const [result] = await pool.query(
@@ -51,7 +52,8 @@ export const getUser = async (username) => {
         throw error;
     }
 };
-
+ 
+//friend_requests db ops
 export const sendFriendRequest = async (senderUsername, receiverUsername) => {
     try {
         const [result] = await pool.query(
@@ -79,6 +81,7 @@ export const respondToFriendRequest = async (requestId, status) => {
         throw error;
     }
 };
+
 
 export const getFriends = async (username) => {
     try {
@@ -131,7 +134,7 @@ export const getSentRequests = async (username) => {
     }
 };
 
-
+//trips db ops
 export const createTrip = async (name, description, destination, startDate, endDate, ownerUsername) => {
     try {
         const [result] = await pool.query(
@@ -200,6 +203,29 @@ export const getPackingItems = async (tripId) =>{
     }
 };
 
+export const deletePackingItem = async (tripId) =>{
+    try{
+        const [result] = await pool.query("DELETE * FROM packing_items WHERE trip_id =?", [tripId]);
+        return result;
+    }
+    catch(error){
+        console.error("Error in deletePackingItem: ", error.message);
+        throw error;
+    }
+};
+
+export const getPersonalPackingItems = async (tripId, username) =>{
+    try{
+        const [rows] = await pool.query("SELECT * FROM packing_items WHERE trip_id = ? AND username = ?", [tripId, username]);
+        return rows;
+    }
+    catch(error){
+        console.error("Error in getPersonalPackingItems: ", error.message);
+        throw error;
+    }
+};
+
+//trip_collaborators db ops
 export const getTripCollaborators = async (tripId) => {
     try {
         const [rows] = await pool.query(
@@ -239,6 +265,7 @@ export const removeCollaborator = async (tripId, username) => {
     }
 };
 
+//itinerary items db ops
 export const addItineraryItem = async (tripId, dayNumber, timeOfDay, title, description, location, createdBy) => {
     try {
         const [result] = await pool.query(
