@@ -183,9 +183,11 @@ function TripDetail({ tripId, currentUser, onBack }) {
     const [showAddItem, setShowAddItem] = useState(false);
     const [addCollabInput, setAddCollabInput] = useState("");
     const [collabMsg, setCollabMsg] = useState("");
+    const [collabError, setCollabError] = useState("");
     const [activeDay, setActiveDay] = useState(1);
 
     const fetchTrip = async () => {
+        setLoading(true);
         const res = await fetch(`${BASE}/trips/${tripId}`);
         const data = await res.json();
         setTrip(data);
@@ -194,17 +196,48 @@ function TripDetail({ tripId, currentUser, onBack }) {
 
     useEffect(() => { fetchTrip(); }, [tripId]);
 
+    // Robust owner check: handles { username } or { user: { username } } shapes
+    const currentUsername =
+        currentUser?.username ||
+        currentUser?.user?.username ||
+        "";
+
+    const isOwner = trip?.owner_username === currentUsername;
+
     const handleAddCollaborator = async () => {
-        if (!addCollabInput.trim()) return;
+        const trimmed = addCollabInput.trim();
+        if (!trimmed) return;
+
+        setCollabMsg("");
+        setCollabError("");
+
+        if (trimmed === currentUsername) {
+            setCollabError("You're already on this trip.");
+            return;
+        }
+
+        const alreadyAdded = (trip?.collaborators || []).some(c => c.username === trimmed);
+        if (alreadyAdded) {
+            setCollabError("This person is already a collaborator.");
+            return;
+        }
+
         const res = await fetch(`${BASE}/trips/${tripId}/collaborators`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: addCollabInput.trim() })
+            body: JSON.stringify({ username: trimmed })
         });
         const data = await res.json();
-        if (res.ok) { setCollabMsg("Collaborator added!"); setAddCollabInput(""); fetchTrip(); }
-        else setCollabMsg(data.error || "Failed to add");
-        setTimeout(() => setCollabMsg(""), 3000);
+
+        if (res.ok) {
+            setCollabMsg("");
+            setAddCollabInput("");
+            fetchTrip();
+        } else {
+            setCollabError(data.error || "Failed to add collaborator");
+        }
+
+        setTimeout(() => { setCollabMsg(""); setCollabError(""); }, 3000);
     };
 
     const handleRemoveCollab = async (username) => {
@@ -221,7 +254,6 @@ function TripDetail({ tripId, currentUser, onBack }) {
     if (!trip) return null;
 
     const numDays = tripDays(trip.start_date, trip.end_date);
-    const isOwner = trip.owner_username === currentUser.username;
     const itemsByDay = {};
     (trip.itinerary || []).forEach(item => {
         if (!itemsByDay[item.day_number]) itemsByDay[item.day_number] = [];
@@ -246,7 +278,7 @@ function TripDetail({ tripId, currentUser, onBack }) {
                         ← Back to trips
                     </button>
                     <h1 className="text-2xl font-semibold text-gray-900">{trip.name}</h1>
-                    {trip.destination && <p className="text-sm text-gray-500 mt-0.5">📍 {trip.destination}</p>}
+                    {trip.destination && <p className="text-sm text-gray-500 mt-0.5"> {trip.destination}</p>}
                     {trip.start_date && (
                         <p className="text-xs text-gray-400 mt-1">
                             {formatDate(trip.start_date)} → {formatDate(trip.end_date)} · {numDays} day{numDays !== 1 ? "s" : ""}
@@ -309,7 +341,7 @@ function TripDetail({ tripId, currentUser, onBack }) {
                                             </span>
                                             <div>
                                                 <p className="text-sm font-medium text-gray-800">{item.title}</p>
-                                                {item.location && <p className="text-xs text-gray-400 mt-0.5">📍 {item.location}</p>}
+                                                {item.location && <p className="text-xs text-gray-400 mt-0.5"> {item.location}</p>}
                                                 {item.description && <p className="text-xs text-gray-500 mt-1">{item.description}</p>}
                                             </div>
                                         </div>
@@ -329,6 +361,7 @@ function TripDetail({ tripId, currentUser, onBack }) {
                 <div className="space-y-4">
                     <div className="bg-white border border-gray-100 rounded-xl p-5">
                         <h2 className="text-sm font-medium text-gray-900 mb-4">Travelers</h2>
+
                         <div className="space-y-2 mb-4">
                             {(trip.collaborators || []).map(c => (
                                 <div key={c.username} className="flex items-center justify-between">
@@ -353,26 +386,30 @@ function TripDetail({ tripId, currentUser, onBack }) {
                             ))}
                         </div>
 
-                        {isOwner && (
+                        {isOwner ? (
                             <div>
+                                <p className="text-xs font-medium text-gray-500 mb-1.5">Add a traveler</p>
                                 <div className="flex gap-1">
                                     <input
                                         type="text"
                                         value={addCollabInput}
                                         onChange={e => setAddCollabInput(e.target.value)}
                                         onKeyDown={e => e.key === "Enter" && handleAddCollaborator()}
-                                        placeholder="Add by username"
+                                        placeholder="Username"
                                         className="flex-1 text-gray-900 px-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
                                     />
                                     <button
                                         onClick={handleAddCollaborator}
-                                        className="bg-emerald-600 text-white text-xs px-2.5 rounded-lg hover:bg-emerald-700 transition-colors"
+                                        className="bg-emerald-600 text-white text-xs px-3 rounded-lg hover:bg-emerald-700 transition-colors font-medium"
                                     >
-                                        +
+                                        Add
                                     </button>
                                 </div>
-                                {collabMsg && <p className="text-xs text-gray-500 mt-1">{collabMsg}</p>}
+                                {collabMsg && <p className="text-xs text-emerald-600 mt-1.5">{collabMsg}</p>}
+                                {collabError && <p className="text-xs text-red-500 mt-1.5">{collabError}</p>}
                             </div>
+                        ) : (
+                            <p className="text-xs text-gray-400 ">Only the trip owner can add travelers.</p>
                         )}
                     </div>
                 </div>
@@ -388,8 +425,13 @@ function Trips({ currentUser }) {
     const [selectedTripId, setSelectedTripId] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // Normalize in case currentUser is wrapped as { user: { username } }
+    const normalizedUser = currentUser?.username
+        ? currentUser
+        : currentUser?.user ?? currentUser;
+
     const fetchTrips = async () => {
-        const res = await fetch(`${BASE}/trips/user/${currentUser.username}`);
+        const res = await fetch(`${BASE}/trips/user/${normalizedUser.username}`);
         const data = await res.json();
         setTrips(Array.isArray(data) ? data : []);
         setLoading(false);
@@ -406,7 +448,7 @@ function Trips({ currentUser }) {
         return (
             <TripDetail
                 tripId={selectedTripId}
-                currentUser={currentUser}
+                currentUser={normalizedUser}
                 onBack={() => { setSelectedTripId(null); fetchTrips(); }}
             />
         );
@@ -416,7 +458,7 @@ function Trips({ currentUser }) {
         <div>
             {showCreate && (
                 <CreateTripModal
-                    currentUser={currentUser}
+                    currentUser={normalizedUser}
                     onClose={() => setShowCreate(false)}
                     onCreated={handleTripCreated}
                 />
@@ -456,7 +498,7 @@ function Trips({ currentUser }) {
                                     {trip.role}
                                 </span>
                             </div>
-                            {trip.destination && <p className="text-xs text-gray-500 mb-1">📍 {trip.destination}</p>}
+                            {trip.destination && <p className="text-xs text-gray-500 mb-1"> {trip.destination}</p>}
                             {trip.start_date && (
                                 <p className="text-xs text-gray-400">
                                     {formatDate(trip.start_date)} → {formatDate(trip.end_date)}
