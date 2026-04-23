@@ -425,7 +425,6 @@ function Trips({ currentUser }) {
     const [selectedTripId, setSelectedTripId] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Normalize in case currentUser is wrapped as { user: { username } }
     const normalizedUser = currentUser?.username
         ? currentUser
         : currentUser?.user ?? currentUser;

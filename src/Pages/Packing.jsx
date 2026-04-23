@@ -11,7 +11,10 @@ function Packing({tripId, currentUser}){
     const [selectedPackingItemId, setSelectedPackingItemId] = useState(null);
     const [selectedPersonalPackingItemId, setSelectedPersonalPackingItemId] = useState(null);
     const [onlyCurrentUser, setOnlyCurrentUser] = useState(false);
+    const [onlyPersonalPackingItems, setOnlyPersonalPackingItems] = useState(false);
     const [personalPackingItems, setPersonalPackingItems] = useState(null);
+    const [checked, setCheckedItem] = useState(false);
+    const [error, setError] = useState("");
 
     const fetchTrip = async()=>{
         const res = await fetch(`${BASE}/trips/${trip.id}`);
@@ -46,6 +49,51 @@ function Packing({tripId, currentUser}){
         setOnlyCurrentUser(!onlyCurrentUser);
     }
 
+    const changeWhatToShowOther = () =>{
+        setOnlyPersonalPackingItems(!onlyPersonalPackingItems);
+    }
+
+    const handleAddPackingItem = async()=>{
+        const response = await fetch(`${BASE}/trips/addPackingItems/:tripId`,{
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ trip, packingItems, checked })
+        });
+
+        const data = await response.json();
+
+        if(!response.ok){
+            setError("Failed to add the packing item");
+            throw new Error("Error to create packing item");  
+        }
+    };
+
+    const handleAddPersonalPackingItem = async()=>{
+        const response = await fetch(`${BASE}/trips/addPersonalPackingItem/:tripId/:username`,{
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({personalPackingItems})
+        });
+
+        const data = await response.json();
+        if(!response.ok){
+            setError("Failed to add the personal packing item");
+            throw new Error("Error to create the personal packing item");
+        }
+    };
+    
+
+    const handleDeletePackingItem = async() =>{
+        const response = await fetch(`${BASE}/trips/deletePackingItem/:tripId`,{
+            method: "DELETE",
+            headers: {"Content-Type": "application/json"},
+        });
+        if(!response.ok){
+            setError("Failed to delete the packing item");
+            throw new Error("Error in deleteing the packing item");
+        }
+    };
+
     useEffect(()=>{
         fetchTrip(); 
         fetchCurrentUser(); 
@@ -58,17 +106,27 @@ function Packing({tripId, currentUser}){
         <div>
             <h3>What to pack for {trip.name}!</h3>
 
-            <div>{(!setOnlyCurrentUser&&
-                <button onClick = {changeWhatToShow}>Show only my Items</button>
+            <div>{(!onlyCurrentUser&&
+                <button onClick = {changeWhatToShow}>Show only my items</button>
             )}
             </div>
 
-            <div>{(setOnlyCurrentUser&&
+            <div>{(!onlyPersonalPackingItems&&
+                <button onClick = {changeWhatToShowOther}>Show only personal items</button>
+            )}
+            </div>
+
+            <div>{(onlyCurrentUser&&
                 <button onClick = {changeWhatToShow}>Show All Items</button>
             )}
             </div>
 
-            <button>Add Item +</button>
+            <div>{(onlyPersonalPackingItems&&
+                <button onClick = {changeWhatToShowOther}>Show all items</button>
+            )}
+            </div>
+
+            <button onClick = {handleAddPackingItem}>Add Item +</button>
 
             <div>
                 {packingItems.map(packingItem =>{
@@ -77,7 +135,7 @@ function Packing({tripId, currentUser}){
                         <div className = "flex items-start justify-between mb-2">
                             <h3>Item name: {packingItem.name}</h3>
                             <h3>Item owner: {packingItem.owner}</h3>
-                            <button onClick = {handleDeleteItem}>Delete Item</button>
+                            <button onClick = {handleDeletePackingItem}>Delete Item</button>
                         </div>
                         )}
                         {(onlyCurrentUser &&
@@ -90,6 +148,7 @@ function Packing({tripId, currentUser}){
                 })}
             </div>
             <h3>My Personal Trip Items: </h3>
+            <button onClick = {handleAddPersonalPackingItem}>Add Item +</button>
 
             <div> {personalPackingItems.map(personalPackingItem=>{
                 <div key = {personalPackingItem.id} onClick = {()=> setSelectedPersonalPackingItemId(personalPackingItem.id)} className = "bg-white border border-gray-100 rounded-xl p-5 cursor-pointer hover:border-emerald-200 hover:shadow-sm transition-all">
@@ -97,8 +156,7 @@ function Packing({tripId, currentUser}){
                         <h3>Item name: {personalPackingItem.name}</h3>
                     </div>
                 </div>
-            })}
-            
+                })}
             </div>
             
         </div>

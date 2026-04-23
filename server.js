@@ -24,7 +24,8 @@ import {
     createPackingItems, 
     getPackingItems,
     deletePackingItem,
-    getPersonalPackingItems
+    getPersonalPackingItems,
+    createPersonalPackingItem
 } from './dbOperations.js';
 
 
@@ -267,12 +268,24 @@ app.get("/trips/:tripId/packingItems/:username", async(req,res) =>{
 app.post("/trips/addPackingItems/:tripId", async(req,res) =>{
     try{
         const {packingItem} = req.body;
-        await createPackingItems(req.params.tripId, packingItem);
+        await createPackingItems(req.params.tripId, username, false);
         res.status(201).json({success: true});
     }
     catch(error){
-        console.error("Error in POST /trips/:addPackingItems/:tripId");
+        console.error("Error in POST /trips/addPackingItems/:tripId");
         res.status(500).json({error: "Failed to add packing item"});
+    }
+});
+
+app.post("/trips/addPersonalPackingItem/:tripId/:username", async(req,res)=>{
+    try{
+        const {personalPackingItem} = req.body;
+        await createPersonalPackingItem(req.params.username, false);
+        res.status(201).json({success: true});
+    }
+    catch(error){
+        console.error("Error in POST /trips/addPackingItem/:tripId/:username");
+        res.status(500).json({error: "failed to add personal packing item"});
     }
 });
 
