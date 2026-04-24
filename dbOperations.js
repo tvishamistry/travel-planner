@@ -180,7 +180,20 @@ export const getTripById = async (tripId) => {
     }
 };
 
-//packingItems db ops
+export const deleteTrip = async (tripId, ownerUsername) => {
+    try {
+        const [result] = await pool.query(
+            "DELETE FROM trips WHERE id = ? AND owner_username = ?",
+            [tripId, ownerUsername]
+        );
+        return result;
+    } catch (error) {
+        console.error("Error in deleteTrip:", error.message);
+        throw error;
+    }
+};
+
+//packing_items db ops
 export const createPackingItems = async(name, bringer, checked)=>{
     try{
         const [result] = await pool.query(`INSERT INTO packing_items (name, bringer, checked) VALUES (?,?,?)`,[name, bringer, checked]);
@@ -188,17 +201,6 @@ export const createPackingItems = async(name, bringer, checked)=>{
     }
     catch(error){
         console.error("Error in createPackingItems", error.message);
-        throw error;
-    }
-};
-
-export const createPersonalPackingItem = async(name, checked)=>{
-    try{
-        const[result] = await pool.query(`INSERT INTO personal_packing_items (name, checked) VALUES (?,?)`,[name, checked]);
-        return result;
-    }
-    catch(error){
-        console.error("Error in createPersonalPackingItem", error.message);
         throw error;
     }
 };
@@ -214,9 +216,20 @@ export const getPackingItems = async (tripId) =>{
     }
 };
 
-export const deletePackingItem = async (tripId) =>{
+export const checkPackingItem = async(checked, tripId, name) =>{
     try{
-        const [result] = await pool.query("DELETE * FROM packing_items WHERE trip_id =?", [tripId]);
+    const [result] = await pool.query("UPDATE packing_items SET checked = ? WHERE trip_id = ? and name = ?",[checked, tripId, name]);
+    return result;
+    }
+    catch(error){
+        console.error("Error in checkPackingItem", error.message);
+        throw error;
+    }
+};
+
+export const deletePackingItem = async (tripId, name) =>{
+    try{
+        const [result] = await pool.query("DELETE * FROM packing_items WHERE trip_id = ? AND name = ?", [tripId, name]);
         return result;
     }
     catch(error){
@@ -225,13 +238,58 @@ export const deletePackingItem = async (tripId) =>{
     }
 };
 
-export const getPersonalPackingItems = async (tripId, username, checked) =>{
+export const getOnlyMyPackingItems = async (tripId, username) =>{
     try{
-        const [rows] = await pool.query("SELECT * FROM packing_items WHERE trip_id = ? AND username = ?", [tripId, username, checked]);
+        const [rows] = await pool.query("SELECT * FROM packing_items WHERE trip_id = ? AND username = ?", [tripId, username]);
         return rows;
     }
     catch(error){
         console.error("Error in getPersonalPackingItems: ", error.message);
+        throw error;
+    }
+};
+
+//personal_packing_items db ops
+export const checkPersonalPackingItem = async(checked, tripId, username) =>{
+    try{
+        const [rows] = await pool.query("UPDATE personal_packing_items SET checked = ? WHERE tripId = ? AND username = ?", [checked, tripId,username]);
+        return rows;
+    }
+    catch(error){
+        console.error("Error in checkPersonalPackingItem: ", error.message);
+        throw error;
+    }
+};
+
+export const getPersonalPackingItems = async(tripId, username) =>{
+    try{
+        const [rows] = await pool.query("SELECT * FROM personal_packing_items WHERE trip_id = ? AND username = ?", [tripId, username]);
+        return rows;
+    }
+    catch(error){
+        console.error("Error in getPersonalPackingItems: ", error.message);
+        throw error;
+    }
+};
+
+export const createPersonalPackingItem = async(tripId, username, name, checked)=>{
+    try{
+        const[result] = await pool.query(`INSERT INTO personal_packing_items WHERE trip_id = ? AND username = ? (name, checked) VALUES (?,?)`,[tripId, username, name, checked]);
+        return result;
+    }
+    catch(error){
+        console.error("Error in createPersonalPackingItem", error.message);
+        throw error;
+    }
+};
+
+export const deletePersonalPackingItem = async(tripId, username, name)=>{
+    try{
+    const result = await pool.query("DELETE * FROM personal_packing_items WHERE trip_id=? AND username = ? AND name = ?",[tripId, username, name]);
+    return result;
+    }
+    catch(error){
+        console.error("Error in deletePersonalPackingItem: ", error.message);
         throw error;
     }
 };
@@ -278,7 +336,7 @@ export const removeCollaborator = async (tripId, username) => {
     }
 };
 
-//itinerary items db ops
+//itinerary_items db ops
 export const addItineraryItem = async (tripId, dayNumber, timeOfDay, title, description, location, createdBy) => {
     try {
         const [result] = await pool.query(
@@ -316,18 +374,7 @@ export const deleteItineraryItem = async (itemId) => {
     }
 };
 
-export const deleteTrip = async (tripId, ownerUsername) => {
-    try {
-        const [result] = await pool.query(
-            "DELETE FROM trips WHERE id = ? AND owner_username = ?",
-            [tripId, ownerUsername]
-        );
-        return result;
-    } catch (error) {
-        console.error("Error in deleteTrip:", error.message);
-        throw error;
-    }
-};
+
 
 
 

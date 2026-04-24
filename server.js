@@ -25,7 +25,8 @@ import {
     getPackingItems,
     deletePackingItem,
     getPersonalPackingItems,
-    createPersonalPackingItem
+    createPersonalPackingItem,
+    deletePersonalPackingItem
 } from './dbOperations.js';
 
 
@@ -235,7 +236,7 @@ app.delete("/trips/:tripId/collaborators/:username", async (req, res) => {
 });
 
 //packingItems routes
-app.get("/trips/packingItems/:tripId", async(req,res) =>{
+app.get("/packingItems/:tripId", async(req,res) =>{
     try{
         const trip = await getTripById(req.params.tripId);
         if(!trip) return res.status(400).json({error: "Error in finding trip"});
@@ -248,8 +249,30 @@ app.get("/trips/packingItems/:tripId", async(req,res) =>{
         res.status(500).json({error: "Failed to fetch packingItems for trip"});
     }
 });
+app.post("/packingItems/:username/:tripId", async(req,res) =>{
+    try{
+        const {name, checked} = req.body;
+        await createPackingItems(req.params.tripId, req.params.username, name, checked);
+        res.status(201).json({success: true});
+    }
+    catch(error){
+        console.error("Error in POST /trips/addPackingItems/:tripId");
+        res.status(500).json({error: "Failed to add packing item"});
+    }
+});
+app.delete("/packingItem/:tripId/:itemName", async(req,res) =>{
+    try{
+        await deletePackingItem(req.params.tripId, req.params.itemName);
+        res.json({success: true});
+    }
+    catch(error){
+        console.error("Error in DELETE /trips/deletePackingItem/:tripId", error.message);
+        res.status(500).json({error: "Failed to delete trip item"});
+    }
+});
 
-app.get("/trips/:tripId/packingItems/:username", async(req,res) =>{
+//personal packing item routes
+app.get("/personalPackingItems/:username", async(req,res) =>{
     try{
         const trip = await getTripById(req.params.tripId);
         const user = await getUser(req.params.username);
@@ -264,23 +287,10 @@ app.get("/trips/:tripId/packingItems/:username", async(req,res) =>{
         res.status(500).json({error: "Failed to fetch personalPackingItems for user for trip"});
     }
 });
-
-app.post("/trips/addPackingItems/:tripId", async(req,res) =>{
+app.post("personalPackingItem/:tripId/:username", async(req,res)=>{
     try{
-        const {packingItem} = req.body;
-        await createPackingItems(req.params.tripId, username, false);
-        res.status(201).json({success: true});
-    }
-    catch(error){
-        console.error("Error in POST /trips/addPackingItems/:tripId");
-        res.status(500).json({error: "Failed to add packing item"});
-    }
-});
-
-app.post("/trips/addPersonalPackingItem/:tripId/:username", async(req,res)=>{
-    try{
-        const {personalPackingItem} = req.body;
-        await createPersonalPackingItem(req.params.username, false);
+        const {name, checked} = req.body;
+        await createPersonalPackingItem(req.params.tripId,req.params.username, name, checked);
         res.status(201).json({success: true});
     }
     catch(error){
@@ -288,18 +298,18 @@ app.post("/trips/addPersonalPackingItem/:tripId/:username", async(req,res)=>{
         res.status(500).json({error: "failed to add personal packing item"});
     }
 });
-
-app.delete("/trips/deletePackingItem/:tripId", async(req,res) =>{
+app.delete("/personalPackingItem/:tripId/:username/:itemName", async(req,res)=>{
     try{
-        await deletePackingItem(req.params.tripId);
+        await deletePersonalPackingItem(req.params.tripId, req.params.username, req.params.itemName);
         res.json({success: true});
     }
     catch(error){
-        console.error("Error in DELETE /trips/deletePackingItem/:tripId", error.message);
-        res.status(500).json({error: "Failed to delete trip item"});
+        console.error("Error in DELETE /personalPackingItem/:tripId/:username/:itemName", error.message);
+        res.json({success: true});
     }
 });
 
+//itinerary routes
 app.post("/trips/:tripId/itinerary", async (req, res) => {
     try {
         const { dayNumber, timeOfDay, title, description, location, createdBy } = req.body;
