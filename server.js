@@ -26,7 +26,8 @@ import {
     deletePackingItem,
     getPersonalPackingItems,
     createPersonalPackingItem,
-    deletePersonalPackingItem
+    deletePersonalPackingItem,
+    checkPersonalPackingItem
 } from './dbOperations.js';
 
 
@@ -271,7 +272,31 @@ app.delete("/packingItem/:tripId/:itemName", async(req,res) =>{
     }
 });
 
+app.put("/packingItem/check/:packingItemId/:username", async(req,res)=>{
+    try{
+        const {check} = req.body;
+        await checkPackingItem(check, tripId, username);
+        res.json({success: true});
+    }
+    catch(error){
+        console.error("Error in PUT /packingItem/check/:packingItemId/:username");
+        res.status(500).json({error: "Failed to update check packing item"});
+    }
+});
+
 //personal packing item routes
+app.put("/personalPackingItem/check/:packingItemId/:username", async(req,res)=>{
+    try{
+        const {check} = req.body;
+        await checkPersonalPackingItem(check, tripId, username);
+        res.json({success: true});
+    }
+    catch(error){
+        console.error("Error in PUT /personalPackingItem/check/:packingItemId/:username");
+        res.status(500).json({error: "Failed to update check personal packing item"});
+    }
+});
+
 app.get("/personalPackingItems/:username", async(req,res) =>{
     try{
         const trip = await getTripById(req.params.tripId);

@@ -15,6 +15,7 @@ function Packing({tripId, currentUser}){
     const [personalPackingItems, setPersonalPackingItems] = useState(null);
     const [checked, setCheckedItem] = useState(false);
     const [error, setError] = useState("");
+    const [collaborator, setCollaborator] = useState(null);
 
     const fetchTrip = async()=>{
         const res = await fetch(`${BASE}/trips/${trip.id}`);
@@ -68,20 +69,33 @@ function Packing({tripId, currentUser}){
         }
     };
 
+    const checkPackingItem = async()=>{
+        const response = await fetch(`${BASE}/check/${packingItems.id}/${currentUser.username}`,{
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({trip, packingItem, currentUser})
+        });
+        const data = await response.json();
+
+        if(!response.ok){
+            setError("Failed to check the packing item");
+            throw new Error("Error to check packing item");
+        }
+    };
+
+
     const handleAddPersonalPackingItem = async()=>{
-        const response = await fetch(`${BASE}/trips/addPersonalPackingItem/:tripId/:username`,{
+        const response = await fetch(`${BASE}/trips/addPersonalPackingItem/${tripId}/${collaborator.username}`,{
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({personalPackingItems})
         });
-
         const data = await response.json();
         if(!response.ok){
             setError("Failed to add the personal packing item");
             throw new Error("Error to create the personal packing item");
         }
     };
-    
 
     const handleDeletePackingItem = async() =>{
         const response = await fetch(`${BASE}/trips/deletePackingItem/:tripId`,{
@@ -93,6 +107,19 @@ function Packing({tripId, currentUser}){
             throw new Error("Error in deleteing the packing item");
         }
     };
+
+    const handleDeletePersonalPackingItem = async() =>{
+        const response = await fetch(`${BASE}/trips/deletePersonalPackingItem/:${tripId}`,{
+            method: "DELETE",
+            headers: {"Content-Type": "application/json"},
+        });
+        if(!response.ok){
+            setError("Failed to delete this personal packing item");
+            throw new Error("Error in deleteing this packing item");
+        }
+    };
+
+
 
     useEffect(()=>{
         fetchTrip(); 
@@ -133,6 +160,19 @@ function Packing({tripId, currentUser}){
                     <div key = {packingItem.id} onClick = {()=> setSelectedPackingItemId(packingItem.id)} className = "bg-white border border-gray-100 rounded-xl p-5 cursor-pointer hover:border-emerald-200 hover:shadow-sm transition-all">
                         {!onlyCurrentUser &&(
                         <div className = "flex items-start justify-between mb-2">
+                            <input
+                            name = "packing item"
+                            type = "packing item name"
+                            placeholder = "enter the name of your packing item"
+                            className="text-gray-900 px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                            />
+
+                            <input
+                            name = "packing item collaborator"
+                            type = "packing item collaborator"
+                            placeholder = "enter the collaborator name"
+                            className = "text-gray-900 px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring focus:ring-emerald-500 transition"
+                            />
                             <h3>Item name: {packingItem.name}</h3>
                             <h3>Item owner: {packingItem.owner}</h3>
                             <button onClick = {handleDeletePackingItem}>Delete Item</button>
@@ -154,6 +194,13 @@ function Packing({tripId, currentUser}){
                 <div key = {personalPackingItem.id} onClick = {()=> setSelectedPersonalPackingItemId(personalPackingItem.id)} className = "bg-white border border-gray-100 rounded-xl p-5 cursor-pointer hover:border-emerald-200 hover:shadow-sm transition-all">
                     <div className = "flex items-start justify-between mb-2">
                         <h3>Item name: {personalPackingItem.name}</h3>
+                        <input
+                        name = "personal packing item name"
+                        type = "personal packing item name"
+                        placeholder = "enter the name of your personal packing item"
+                        className = "text-gray-900 px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2"
+                        />
+                        <button onClick = {handleDeletePersonalPackingItem}>Delete Item</button>
                     </div>
                 </div>
                 })}
