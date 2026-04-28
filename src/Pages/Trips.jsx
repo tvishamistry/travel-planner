@@ -419,7 +419,7 @@ function TripDetail({ tripId, currentUser, onBack }) {
 }
 
 
-function Trips({ currentUser }) {
+function Trips({ currentUser, setSelectedTripId: setDashboardTripId }) {
     const [trips, setTrips] = useState([]);
     const [showCreate, setShowCreate] = useState(false);
     const [selectedTripId, setSelectedTripId] = useState(null);
@@ -438,10 +438,11 @@ function Trips({ currentUser }) {
 
     useEffect(() => { fetchTrips(); }, []);
 
-    const handleTripCreated = (newId) => {
-        fetchTrips();
-        setSelectedTripId(newId);
-    };
+  const handleTripCreated = (newId) => {
+    fetchTrips();
+    setSelectedTripId(newId);
+    setDashboardTripId(newId);  // add this line
+};
 
     if (selectedTripId) {
         return (
@@ -488,7 +489,7 @@ function Trips({ currentUser }) {
                     {trips.map(trip => (
                         <div
                             key={trip.id}
-                            onClick={() => setSelectedTripId(trip.id)}
+                            onClick={() => { setSelectedTripId(trip.id); setDashboardTripId(trip.id); }}
                             className="bg-white border border-gray-100 rounded-xl p-5 cursor-pointer hover:border-emerald-200 hover:shadow-sm transition-all"
                         >
                             <div className="flex items-start justify-between mb-2">

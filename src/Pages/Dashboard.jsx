@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Friends from './Friends';
 import Trips from './Trips';
+import Packing from './Packing';
 
 function Dashboard() {
     const [user, setUser] = useState(null);
     const [activePage, setActivePage] = useState("dashboard");
+    const [selectedTripId, setSelectedTripId] = useState(null);
     const navigate = useNavigate();
 
     const navItems = [
@@ -38,10 +40,14 @@ function Dashboard() {
 
     const renderMain = () => {
         if (!user) return null;
-        
+
         if (activePage === "friends") return <Friends currentUser={user} />;
-        if (activePage === "trips")   return <Trips currentUser={user} />;
-        
+        if (activePage === "trips")   return <Trips currentUser={user} setSelectedTripId={setSelectedTripId} />;
+        if (activePage === "packing") {
+            if (!selectedTripId) return <p>Please select a trip first.</p>;
+            return <Packing tripId={selectedTripId} currentUser={user} />;
+        }
+
         return (
             <>
                 <div className="flex items-center justify-between mb-8">
@@ -58,7 +64,6 @@ function Dashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* You can add dashboard overview cards here later */}
                     <div className="p-6 bg-white border border-gray-100 rounded-xl shadow-sm">
                         <h3 className="font-medium text-gray-800">Quick Stats</h3>
                         <p className="text-3xl font-bold text-emerald-600 mt-2">0</p>
@@ -97,7 +102,12 @@ function Dashboard() {
                     {toolItems.map((item) => (
                         <button
                             key={item.key}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mb-1 text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all"
+                            onClick={() => setActivePage(item.key)}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mb-1 transition-all ${
+                                activePage === item.key
+                                    ? "bg-emerald-50 text-emerald-700 font-semibold"
+                                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                            }`}
                         >
                             {item.label}
                         </button>
@@ -105,13 +115,13 @@ function Dashboard() {
 
                     <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest px-2 mb-4 mt-8">Account</p>
                     <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-all">
-                    Settings
+                        Settings
                     </button>
-                    <button 
+                    <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 transition-all mt-1"
                     >
-                        <span>Logout</span> 
+                        <span>Logout</span>
                     </button>
                 </nav>
 

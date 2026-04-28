@@ -193,108 +193,67 @@ export const deleteTrip = async (tripId, ownerUsername) => {
     }
 };
 
-//packing_items db ops
-export const createPackingItems = async(name, bringer, checked)=>{
-    try{
-        const [result] = await pool.query(`INSERT INTO packing_items (name, bringer, checked) VALUES (?,?,?)`,[name, bringer, checked]);
+export const createPackingItems = async (tripId, name, bringer, checked) => { // ✅ added tripId param
+    try {
+        const [result] = await pool.query(
+            `INSERT INTO packing_items (trip_id, name, bringer, checked) VALUES (?,?,?,?)`,
+            [tripId, name, bringer, checked]  // ✅ now inserts trip_id
+        );
         return result;
-    }
-    catch(error){
+    } catch (error) {
         console.error("Error in createPackingItems", error.message);
         throw error;
     }
 };
-
-export const getPackingItems = async (tripId) =>{
-    try{
-        const [rows] = await pool.query("SELECT * FROM packing_items WHERE trip_id =?",[tripId]);
-        return rows;
-    }
-    catch(error){
-        console.error("Error in getPackingItems", error.message);
-        throw error;
-    }
-};
-
-export const checkPackingItem = async(checked, tripId, name) =>{
-    try{
-    const [result] = await pool.query("UPDATE packing_items SET checked = ? WHERE trip_id = ? and name = ?",[checked, tripId, name]);
-    return result;
-    }
-    catch(error){
-        console.error("Error in checkPackingItem", error.message);
-        throw error;
-    }
-};
-
-export const deletePackingItem = async (tripId, name) =>{
-    try{
-        const [result] = await pool.query("DELETE * FROM packing_items WHERE trip_id = ? AND name = ?", [tripId, name]);
+ 
+export const createPersonalPackingItem = async (tripId, username, name, checked) => { // ✅ added tripId + username
+    try {
+        const [result] = await pool.query(
+            `INSERT INTO personal_packing_items (trip_id, username, name, checked) VALUES (?,?,?,?)`,
+            [tripId, username, name, checked]  // ✅ now inserts trip_id + username
+        );
         return result;
-    }
-    catch(error){
-        console.error("Error in deletePackingItem: ", error.message);
-        throw error;
-    }
-};
-
-export const getOnlyMyPackingItems = async (tripId, username) =>{
-    try{
-        const [rows] = await pool.query("SELECT * FROM packing_items WHERE trip_id = ? AND username = ?", [tripId, username]);
-        return rows;
-    }
-    catch(error){
-        console.error("Error in getPersonalPackingItems: ", error.message);
-        throw error;
-    }
-};
-
-//personal_packing_items db ops
-export const checkPersonalPackingItem = async(checked, tripId, username) =>{
-    try{
-        const [rows] = await pool.query("UPDATE personal_packing_items SET checked = ? WHERE tripId = ? AND username = ?", [checked, tripId,username]);
-        return rows;
-    }
-    catch(error){
-        console.error("Error in checkPersonalPackingItem: ", error.message);
-        throw error;
-    }
-};
-
-export const getPersonalPackingItems = async(tripId, username) =>{
-    try{
-        const [rows] = await pool.query("SELECT * FROM personal_packing_items WHERE trip_id = ? AND username = ?", [tripId, username]);
-        return rows;
-    }
-    catch(error){
-        console.error("Error in getPersonalPackingItems: ", error.message);
-        throw error;
-    }
-};
-
-export const createPersonalPackingItem = async(tripId, username, name, checked)=>{
-    try{
-        const[result] = await pool.query(`INSERT INTO personal_packing_items WHERE trip_id = ? AND username = ? (name, checked) VALUES (?,?)`,[tripId, username, name, checked]);
-        return result;
-    }
-    catch(error){
+    } catch (error) {
         console.error("Error in createPersonalPackingItem", error.message);
         throw error;
     }
 };
-
-export const deletePersonalPackingItem = async(tripId, username, name)=>{
-    try{
-    const result = await pool.query("DELETE * FROM personal_packing_items WHERE trip_id=? AND username = ? AND name = ?",[tripId, username, name]);
-    return result;
-    }
-    catch(error){
-        console.error("Error in deletePersonalPackingItem: ", error.message);
+ 
+export const getPackingItems = async (tripId) => {
+    try {
+        const [rows] = await pool.query("SELECT * FROM packing_items WHERE trip_id = ?", [tripId]);
+        return rows;
+    } catch (error) {
+        console.error("Error in getPackingItems", error.message);
         throw error;
     }
 };
-
-
+ 
+export const deletePackingItem = async (tripId, itemId) => { // ✅ added itemId param
+    try {
+        const [result] = await pool.query(
+            "DELETE FROM packing_items WHERE trip_id = ? AND id = ?", // ✅ was "DELETE *" (invalid SQL); added itemId filter
+            [tripId, itemId]
+        );
+        return result;
+    } catch (error) {
+        console.error("Error in deletePackingItem: ", error.message);
+        throw error;
+    }
+};
+ 
+export const getPersonalPackingItems = async (tripId, username) => { // ✅ removed unused `checked` param
+    try {
+        const [rows] = await pool.query(
+            "SELECT * FROM personal_packing_items WHERE trip_id = ? AND username = ?", // ✅ was querying wrong table
+            [tripId, username]  // ✅ removed extra `checked` arg that didn't match query placeholders
+        );
+        return rows;
+    } catch (error) {
+        console.error("Error in getPersonalPackingItems: ", error.message);
+        throw error;
+    }
+};
 
 //trip_collaborators db ops
 export const getTripCollaborators = async (tripId) => {
