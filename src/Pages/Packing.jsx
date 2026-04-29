@@ -90,7 +90,7 @@ function Packing({ tripId, currentUser }) {
 
     return (
         <div>
-            {/* Header */}
+            
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-semibold text-gray-900">Packing List</h1>
@@ -126,7 +126,7 @@ function Packing({ tripId, currentUser }) {
 
             <div className="grid grid-cols-2 gap-6">
 
-                {/* Trip Packing Items */}
+                
                 {!onlyPersonalPackingItems && (
                     <div className="bg-white border border-gray-100 rounded-xl p-5">
                         <h2 className="text-sm font-medium text-gray-900 mb-4">Trip Items</h2>
@@ -177,7 +177,7 @@ function Packing({ tripId, currentUser }) {
                     </div>
                 )}
 
-                {/* Personal Packing Items */}
+               
                 {!onlyCurrentUser && (
                     <div className="bg-white border border-gray-100 rounded-xl p-5">
                         <h2 className="text-sm font-medium text-gray-900 mb-4">My Personal Items</h2>

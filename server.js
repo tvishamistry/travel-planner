@@ -255,7 +255,7 @@ app.get("/trips/:tripId/packingItems/:username", async (req, res) => {
             return res.status(400).json({ error: "Error in finding trip or username" });
         }
         const packingItems = await getPersonalPackingItems(req.params.tripId, req.params.username);
-        res.json({ ...trip, username: req.params.username, packingItems }); // ✅ was bare `username` (undefined)
+        res.json({ ...trip, username: req.params.username, packingItems });
     } catch (error) {
         console.error("Error in GET /trips/:tripId/packingItems/:username", error.message);
         res.status(500).json({ error: "Failed to fetch personalPackingItems for user for trip" });
@@ -264,7 +264,7 @@ app.get("/trips/:tripId/packingItems/:username", async (req, res) => {
  
 app.post("/trips/addPackingItems/:tripId", async (req, res) => {
     try {
-        const { name, username } = req.body; // ✅ was destructuring wrong field; now pulls name + username
+        const { name, username } = req.body; 
         await createPackingItems(req.params.tripId, name, username, false);
         res.status(201).json({ success: true });
     } catch (error) {
@@ -275,8 +275,8 @@ app.post("/trips/addPackingItems/:tripId", async (req, res) => {
  
 app.post("/trips/addPersonalPackingItem/:tripId/:username", async (req, res) => {
     try {
-        const { name } = req.body; // ✅ was destructuring wrong field
-        await createPersonalPackingItem(req.params.tripId, req.params.username, name, false); // ✅ added tripId + username
+        const { name } = req.body; 
+        await createPersonalPackingItem(req.params.tripId, req.params.username, name, false); 
         res.status(201).json({ success: true });
     } catch (error) {
         console.error("Error in POST /trips/addPersonalPackingItem/:tripId/:username", error.message);
@@ -284,9 +284,9 @@ app.post("/trips/addPersonalPackingItem/:tripId/:username", async (req, res) => 
     }
 });
  
-app.delete("/trips/deletePackingItem/:tripId/:itemId", async (req, res) => { // ✅ added :itemId param
+app.delete("/trips/deletePackingItem/:tripId/:itemId", async (req, res) => { 
     try {
-        await deletePackingItem(req.params.tripId, req.params.itemId); // ✅ pass both so only ONE item is deleted
+        await deletePackingItem(req.params.tripId, req.params.itemId); 
         res.json({ success: true });
     } catch (error) {
         console.error("Error in DELETE /trips/deletePackingItem/:tripId/:itemId", error.message);

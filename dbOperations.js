@@ -193,11 +193,11 @@ export const deleteTrip = async (tripId, ownerUsername) => {
     }
 };
 
-export const createPackingItems = async (tripId, name, bringer, checked) => { // ✅ added tripId param
+export const createPackingItems = async (tripId, name, bringer, checked) => { 
     try {
         const [result] = await pool.query(
             `INSERT INTO packing_items (trip_id, name, bringer, checked) VALUES (?,?,?,?)`,
-            [tripId, name, bringer, checked]  // ✅ now inserts trip_id
+            [tripId, name, bringer, checked]  
         );
         return result;
     } catch (error) {
@@ -206,11 +206,11 @@ export const createPackingItems = async (tripId, name, bringer, checked) => { //
     }
 };
  
-export const createPersonalPackingItem = async (tripId, username, name, checked) => { // ✅ added tripId + username
+export const createPersonalPackingItem = async (tripId, username, name, checked) => { 
     try {
         const [result] = await pool.query(
             `INSERT INTO personal_packing_items (trip_id, username, name, checked) VALUES (?,?,?,?)`,
-            [tripId, username, name, checked]  // ✅ now inserts trip_id + username
+            [tripId, username, name, checked]  
         );
         return result;
     } catch (error) {
@@ -229,10 +229,10 @@ export const getPackingItems = async (tripId) => {
     }
 };
  
-export const deletePackingItem = async (tripId, itemId) => { // ✅ added itemId param
+export const deletePackingItem = async (tripId, itemId) => { 
     try {
         const [result] = await pool.query(
-            "DELETE FROM packing_items WHERE trip_id = ? AND id = ?", // ✅ was "DELETE *" (invalid SQL); added itemId filter
+            "DELETE FROM packing_items WHERE trip_id = ? AND id = ?", 
             [tripId, itemId]
         );
         return result;
@@ -242,11 +242,11 @@ export const deletePackingItem = async (tripId, itemId) => { // ✅ added itemId
     }
 };
  
-export const getPersonalPackingItems = async (tripId, username) => { // ✅ removed unused `checked` param
+export const getPersonalPackingItems = async (tripId, username) => { 
     try {
         const [rows] = await pool.query(
-            "SELECT * FROM personal_packing_items WHERE trip_id = ? AND username = ?", // ✅ was querying wrong table
-            [tripId, username]  // ✅ removed extra `checked` arg that didn't match query placeholders
+            "SELECT * FROM personal_packing_items WHERE trip_id = ? AND username = ?", 
+            [tripId, username]  
         );
         return rows;
     } catch (error) {

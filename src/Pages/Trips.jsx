@@ -196,7 +196,6 @@ function TripDetail({ tripId, currentUser, onBack }) {
 
     useEffect(() => { fetchTrip(); }, [tripId]);
 
-    // Robust owner check: handles { username } or { user: { username } } shapes
     const currentUsername =
         currentUser?.username ||
         currentUser?.user?.username ||
@@ -441,7 +440,7 @@ function Trips({ currentUser, setSelectedTripId: setDashboardTripId }) {
   const handleTripCreated = (newId) => {
     fetchTrips();
     setSelectedTripId(newId);
-    setDashboardTripId(newId);  // add this line
+    setDashboardTripId(newId);  
 };
 
     if (selectedTripId) {
