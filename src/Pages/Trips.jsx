@@ -39,7 +39,6 @@ function CreateTripModal({ currentUser, onClose, onCreated }) {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-5">Plan a new trip</h2>
-
                 <div className="space-y-3">
                     {[
                         { label: "Trip name *", key: "name", placeholder: "Trip Name" },
@@ -67,7 +66,6 @@ function CreateTripModal({ currentUser, onClose, onCreated }) {
                             )}
                         </div>
                     ))}
-
                     <div className="grid grid-cols-2 gap-3">
                         {[
                             { label: "Start date", key: "startDate" },
@@ -85,9 +83,7 @@ function CreateTripModal({ currentUser, onClose, onCreated }) {
                         ))}
                     </div>
                 </div>
-
                 {error && <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mt-3 text-center">{error}</p>}
-
                 <div className="flex gap-2 mt-5">
                     <button onClick={onClose} className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-lg hover:bg-gray-50 transition-colors">
                         Cancel
@@ -181,10 +177,11 @@ function TripDetail({ tripId, currentUser, onBack }) {
     const [trip, setTrip] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showAddItem, setShowAddItem] = useState(false);
-    const [addCollabInput, setAddCollabInput] = useState("");
     const [collabMsg, setCollabMsg] = useState("");
     const [collabError, setCollabError] = useState("");
     const [activeDay, setActiveDay] = useState(1);
+    const [friends, setFriends] = useState([]);
+    const [selectedFriend, setSelectedFriend] = useState("");
 
     const fetchTrip = async () => {
         setLoading(true);
@@ -194,43 +191,39 @@ function TripDetail({ tripId, currentUser, onBack }) {
         setLoading(false);
     };
 
-    useEffect(() => { fetchTrip(); }, [tripId]);
+    const fetchFriends = async () => {
+        const res = await fetch(`${BASE}/friends/${currentUser.username}`);
+        const data = await res.json();
+        setFriends(Array.isArray(data) ? data : []);
+    };
 
-    const currentUsername =
-        currentUser?.username ||
-        currentUser?.user?.username ||
-        "";
+    useEffect(() => {
+        fetchTrip();
+        fetchFriends();
+    }, [tripId]);
 
+    const currentUsername = currentUser?.username || currentUser?.user?.username || "";
     const isOwner = trip?.owner_username === currentUsername;
 
-    const handleAddCollaborator = async () => {
-        const trimmed = addCollabInput.trim();
-        if (!trimmed) return;
+    // Friends who are not already collaborators on this trip
+    const availableFriends = friends.filter(f =>
+        !(trip?.collaborators || []).some(c => c.username === f.friend_username)
+    );
 
+    const handleAddCollaborator = async () => {
+        if (!selectedFriend) return;
         setCollabMsg("");
         setCollabError("");
-
-        if (trimmed === currentUsername) {
-            setCollabError("You're already on this trip.");
-            return;
-        }
-
-        const alreadyAdded = (trip?.collaborators || []).some(c => c.username === trimmed);
-        if (alreadyAdded) {
-            setCollabError("This person is already a collaborator.");
-            return;
-        }
 
         const res = await fetch(`${BASE}/trips/${tripId}/collaborators`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: trimmed })
+            body: JSON.stringify({ username: selectedFriend })
         });
         const data = await res.json();
 
         if (res.ok) {
-            setCollabMsg("");
-            setAddCollabInput("");
+            setSelectedFriend("");
             fetchTrip();
         } else {
             setCollabError(data.error || "Failed to add collaborator");
@@ -270,14 +263,13 @@ function TripDetail({ tripId, currentUser, onBack }) {
                     onAdded={fetchTrip}
                 />
             )}
-
             <div className="flex items-start justify-between mb-6">
                 <div>
                     <button onClick={onBack} className="text-xs text-gray-400 hover:text-gray-600 mb-2 flex items-center gap-1 transition-colors">
                         ← Back to trips
                     </button>
                     <h1 className="text-2xl font-semibold text-gray-900">{trip.name}</h1>
-                    {trip.destination && <p className="text-sm text-gray-500 mt-0.5"> {trip.destination}</p>}
+                    {trip.destination && <p className="text-sm text-gray-500 mt-0.5">{trip.destination}</p>}
                     {trip.start_date && (
                         <p className="text-xs text-gray-400 mt-1">
                             {formatDate(trip.start_date)} → {formatDate(trip.end_date)} · {numDays} day{numDays !== 1 ? "s" : ""}
@@ -290,7 +282,6 @@ function TripDetail({ tripId, currentUser, onBack }) {
                 >
                     + Add to itinerary
                 </button>
-                
             </div>
 
             {trip.description && (
@@ -303,7 +294,6 @@ function TripDetail({ tripId, currentUser, onBack }) {
                 <div className="col-span-2">
                     <div className="bg-white border border-gray-100 rounded-xl p-5">
                         <h2 className="text-sm font-medium text-gray-900 mb-4">Itinerary</h2>
-
                         {numDays > 1 && (
                             <div className="flex gap-1 mb-4 flex-wrap">
                                 {Array.from({ length: numDays }, (_, i) => i + 1).map(d => (
@@ -319,7 +309,6 @@ function TripDetail({ tripId, currentUser, onBack }) {
                                 ))}
                             </div>
                         )}
-
                         {(itemsByDay[activeDay] || []).length === 0 ? (
                             <div className="flex flex-col items-center py-10 text-center">
                                 <p className="text-sm text-gray-400 mb-3">Nothing planned for Day {activeDay} yet</p>
@@ -340,7 +329,7 @@ function TripDetail({ tripId, currentUser, onBack }) {
                                             </span>
                                             <div>
                                                 <p className="text-sm font-medium text-gray-800">{item.title}</p>
-                                                {item.location && <p className="text-xs text-gray-400 mt-0.5"> {item.location}</p>}
+                                                {item.location && <p className="text-xs text-gray-400 mt-0.5">{item.location}</p>}
                                                 {item.description && <p className="text-xs text-gray-500 mt-1">{item.description}</p>}
                                             </div>
                                         </div>
@@ -360,7 +349,6 @@ function TripDetail({ tripId, currentUser, onBack }) {
                 <div className="space-y-4">
                     <div className="bg-white border border-gray-100 rounded-xl p-5">
                         <h2 className="text-sm font-medium text-gray-900 mb-4">Travelers</h2>
-
                         <div className="space-y-2 mb-4">
                             {(trip.collaborators || []).map(c => (
                                 <div key={c.username} className="flex items-center justify-between">
@@ -385,30 +373,41 @@ function TripDetail({ tripId, currentUser, onBack }) {
                             ))}
                         </div>
 
-                        {isOwner ? (
+                        {isOwner && (
                             <div>
                                 <p className="text-xs font-medium text-gray-500 mb-1.5">Add a traveler</p>
-                                <div className="flex gap-1">
-                                    <input
-                                        type="text"
-                                        value={addCollabInput}
-                                        onChange={e => setAddCollabInput(e.target.value)}
-                                        onKeyDown={e => e.key === "Enter" && handleAddCollaborator()}
-                                        placeholder="Username"
-                                        className="flex-1 text-gray-900 px-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
-                                    />
-                                    <button
-                                        onClick={handleAddCollaborator}
-                                        className="bg-emerald-600 text-white text-xs px-3 rounded-lg hover:bg-emerald-700 transition-colors font-medium"
-                                    >
-                                        Add
-                                    </button>
-                                </div>
+                                {availableFriends.length === 0 ? (
+                                    <p className="text-xs text-gray-400">All your friends are already on this trip.</p>
+                                ) : (
+                                    <div className="flex gap-1">
+                                        <select
+                                            value={selectedFriend}
+                                            onChange={e => setSelectedFriend(e.target.value)}
+                                            className="flex-1 text-gray-900 px-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+                                        >
+                                            <option value="">Select a friend...</option>
+                                            {availableFriends.map(f => (
+                                                <option key={f.id} value={f.friend_username}>
+                                                    {f.friend_username}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            onClick={handleAddCollaborator}
+                                            disabled={!selectedFriend}
+                                            className="bg-emerald-600 text-white text-xs px-3 rounded-lg hover:bg-emerald-700 disabled:opacity-40 transition-colors font-medium"
+                                        >
+                                            Add
+                                        </button>
+                                    </div>
+                                )}
                                 {collabMsg && <p className="text-xs text-emerald-600 mt-1.5">{collabMsg}</p>}
                                 {collabError && <p className="text-xs text-red-500 mt-1.5">{collabError}</p>}
                             </div>
-                        ) : (
-                            <p className="text-xs text-gray-400 ">Only the trip owner can add travelers.</p>
+                        )}
+
+                        {!isOwner && (
+                            <p className="text-xs text-gray-400">Only the trip owner can add travelers.</p>
                         )}
                     </div>
                 </div>
@@ -424,6 +423,11 @@ function Trips({ currentUser, setSelectedTripId: setDashboardTripId }) {
     const [selectedTripId, setSelectedTripId] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const [search, setSearch]             = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [roleFilter, setRoleFilter]     = useState("all");
+    const [sortBy, setSortBy]             = useState("soonest");
+
     const normalizedUser = currentUser?.username
         ? currentUser
         : currentUser?.user ?? currentUser;
@@ -437,11 +441,63 @@ function Trips({ currentUser, setSelectedTripId: setDashboardTripId }) {
 
     useEffect(() => { fetchTrips(); }, []);
 
-  const handleTripCreated = (newId) => {
-    fetchTrips();
-    setSelectedTripId(newId);
-    setDashboardTripId(newId);  
-};
+    const handleTripCreated = (newId) => {
+        fetchTrips();
+        setSelectedTripId(newId);
+        setDashboardTripId(newId);
+    };
+
+    const getProcessedTrips = () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let result = [...trips];
+
+        if (search.trim()) {
+            result = result.filter(t => t.name.toLowerCase().includes(search.trim().toLowerCase()));
+        }
+        if (statusFilter === "upcoming") {
+            result = result.filter(t => t.start_date && new Date(t.start_date) > today);
+        } else if (statusFilter === "past") {
+            result = result.filter(t => t.end_date && new Date(t.end_date) < today);
+        } else if (statusFilter === "inprogress") {
+            result = result.filter(t =>
+                t.start_date && t.end_date &&
+                new Date(t.start_date) <= today && new Date(t.end_date) >= today
+            );
+        }
+        if (roleFilter === "owner") {
+            result = result.filter(t => t.role === "owner");
+        } else if (roleFilter === "collaborator") {
+            result = result.filter(t => t.role !== "owner");
+        }
+
+        result.sort((a, b) => {
+            if (sortBy === "soonest") {
+                if (!a.start_date) return 1;
+                if (!b.start_date) return -1;
+                return new Date(a.start_date) - new Date(b.start_date);
+            }
+            if (sortBy === "latest") {
+                if (!a.start_date) return 1;
+                if (!b.start_date) return -1;
+                return new Date(b.start_date) - new Date(a.start_date);
+            }
+            if (sortBy === "longest") return tripDays(b.start_date, b.end_date) - tripDays(a.start_date, a.end_date);
+            if (sortBy === "shortest") return tripDays(a.start_date, a.end_date) - tripDays(b.start_date, b.end_date);
+            if (sortBy === "az") return a.name.localeCompare(b.name);
+            return 0;
+        });
+
+        return result;
+    };
+
+    const processedTrips = getProcessedTrips();
+    const activeFilterCount = [
+        search.trim() !== "",
+        statusFilter !== "all",
+        roleFilter !== "all",
+        sortBy !== "soonest",
+    ].filter(Boolean).length;
 
     if (selectedTripId) {
         return (
@@ -473,6 +529,61 @@ function Trips({ currentUser, setSelectedTripId: setDashboardTripId }) {
                 </button>
             </div>
 
+            {trips.length > 0 && (
+                <div className="bg-white border border-gray-100 rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-center">
+                    <input
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        placeholder="Search trips..."
+                        className="text-gray-900 px-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition w-40"
+                    />
+                    <select
+                        value={statusFilter}
+                        onChange={e => setStatusFilter(e.target.value)}
+                        className={`px-3 py-1.5 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition ${
+                            statusFilter !== "all" ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-600"
+                        }`}
+                    >
+                        <option value="all">All statuses</option>
+                        <option value="upcoming">Upcoming</option>
+                        <option value="inprogress">In progress</option>
+                        <option value="past">Past</option>
+                    </select>
+                    <select
+                        value={roleFilter}
+                        onChange={e => setRoleFilter(e.target.value)}
+                        className={`px-3 py-1.5 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition ${
+                            roleFilter !== "all" ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-600"
+                        }`}
+                    >
+                        <option value="all">All roles</option>
+                        <option value="owner">My trips</option>
+                        <option value="collaborator">Invited trips</option>
+                    </select>
+                    <select
+                        value={sortBy}
+                        onChange={e => setSortBy(e.target.value)}
+                        className={`px-3 py-1.5 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition ${
+                            sortBy !== "soonest" ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-600"
+                        }`}
+                    >
+                        <option value="soonest">Soonest first</option>
+                        <option value="latest">Latest first</option>
+                        <option value="longest">Longest first</option>
+                        <option value="shortest">Shortest first</option>
+                        <option value="az">A → Z</option>
+                    </select>
+                    {activeFilterCount > 0 && (
+                        <button
+                            onClick={() => { setSearch(""); setStatusFilter("all"); setRoleFilter("all"); setSortBy("soonest"); }}
+                            className="text-xs text-gray-400 hover:text-red-400 transition-colors ml-auto"
+                        >
+                            Clear filters ({activeFilterCount})
+                        </button>
+                    )}
+                </div>
+            )}
+
             {loading ? (
                 <div className="flex items-center justify-center h-40"><p className="text-sm text-gray-400">Loading...</p></div>
             ) : trips.length === 0 ? (
@@ -483,31 +594,70 @@ function Trips({ currentUser, setSelectedTripId: setDashboardTripId }) {
                         + Plan a trip
                     </button>
                 </div>
+            ) : processedTrips.length === 0 ? (
+                <div className="bg-white border border-gray-100 rounded-xl p-12 text-center">
+                    <p className="text-sm font-medium text-gray-700 mb-1">No trips match your filters</p>
+                    <p className="text-xs text-gray-400 mb-4">Try adjusting your search or filters</p>
+                    <button
+                        onClick={() => { setSearch(""); setStatusFilter("all"); setRoleFilter("all"); setSortBy("soonest"); }}
+                        className="text-xs border border-gray-200 text-gray-500 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                        Clear filters
+                    </button>
+                </div>
             ) : (
                 <div className="grid grid-cols-2 gap-4">
-                    {trips.map(trip => (
-                        <div
-                            key={trip.id}
-                            onClick={() => { setSelectedTripId(trip.id); setDashboardTripId(trip.id); }}
-                            className="bg-white border border-gray-100 rounded-xl p-5 cursor-pointer hover:border-emerald-200 hover:shadow-sm transition-all"
-                        >
-                            <div className="flex items-start justify-between mb-2">
-                                <h3 className="text-sm font-semibold text-gray-900">{trip.name}</h3>
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${trip.role === "owner" ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"}`}>
-                                    {trip.role}
-                                </span>
+                    {processedTrips.map(trip => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const start = trip.start_date ? new Date(trip.start_date) : null;
+                        const end = trip.end_date ? new Date(trip.end_date) : null;
+                        const status = !start ? null
+                            : start > today ? "upcoming"
+                            : end && end < today ? "past"
+                            : "inprogress";
+                        const statusStyles = {
+                            upcoming:   "bg-blue-50 text-blue-600",
+                            past:       "bg-gray-100 text-gray-400",
+                            inprogress: "bg-emerald-50 text-emerald-600",
+                        };
+                        const statusLabels = {
+                            upcoming:   "Upcoming",
+                            past:       "Past",
+                            inprogress: "In progress",
+                        };
+                        return (
+                            <div
+                                key={trip.id}
+                                onClick={() => { setSelectedTripId(trip.id); setDashboardTripId(trip.id); }}
+                                className="bg-white border border-gray-100 rounded-xl p-5 cursor-pointer hover:border-emerald-200 hover:shadow-sm transition-all"
+                            >
+                                <div className="flex items-start justify-between mb-2">
+                                    <h3 className="text-sm font-semibold text-gray-900">{trip.name}</h3>
+                                    <div className="flex gap-1.5 flex-shrink-0 ml-2">
+                                        {status && (
+                                            <span className={`text-xs px-2 py-0.5 rounded-full ${statusStyles[status]}`}>
+                                                {statusLabels[status]}
+                                            </span>
+                                        )}
+                                        <span className={`text-xs px-2 py-0.5 rounded-full ${trip.role === "owner" ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"}`}>
+                                            {trip.role}
+                                        </span>
+                                    </div>
+                                </div>
+                                {trip.destination && <p className="text-xs text-gray-500 mb-1">{trip.destination}</p>}
+                                {trip.start_date && (
+                                    <p className="text-xs text-gray-400">
+                                        {formatDate(trip.start_date)} → {formatDate(trip.end_date)}
+                                        {start && end && <span className="ml-1">· {tripDays(trip.start_date, trip.end_date)} days</span>}
+                                    </p>
+                                )}
+                                {trip.description && (
+                                    <p className="text-xs text-gray-400 mt-2 line-clamp-2">{trip.description}</p>
+                                )}
                             </div>
-                            {trip.destination && <p className="text-xs text-gray-500 mb-1"> {trip.destination}</p>}
-                            {trip.start_date && (
-                                <p className="text-xs text-gray-400">
-                                    {formatDate(trip.start_date)} → {formatDate(trip.end_date)}
-                                </p>
-                            )}
-                            {trip.description && (
-                                <p className="text-xs text-gray-400 mt-2 line-clamp-2">{trip.description}</p>
-                            )}
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

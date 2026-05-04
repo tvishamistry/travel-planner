@@ -26,6 +26,7 @@ import {
     deletePackingItem,
     getPersonalPackingItems,
     createPersonalPackingItem,
+    updatePackingItemChecked
 } from './dbOperations.js';
 
 
@@ -259,6 +260,17 @@ app.get("/trips/:tripId/packingItems/:username", async (req, res) => {
     } catch (error) {
         console.error("Error in GET /trips/:tripId/packingItems/:username", error.message);
         res.status(500).json({ error: "Failed to fetch personalPackingItems for user for trip" });
+    }
+});
+
+app.patch("/trips/packingItems/:itemId/checked", async (req, res) => {
+    try {
+        const { checked } = req.body;
+        await updatePackingItemChecked(req.params.itemId, checked);
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error in PATCH /trips/packingItems/:itemId/checked", error.message);
+        res.status(500).json({ error: "Failed to update packing item" });
     }
 });
  

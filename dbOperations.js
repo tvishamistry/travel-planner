@@ -255,6 +255,19 @@ export const getPersonalPackingItems = async (tripId, username) => {
     }
 };
 
+export const updatePackingItemChecked = async (itemId, checked) => {
+    try {
+        const [result] = await pool.query(
+            "UPDATE packing_items SET checked = ? WHERE id = ?",
+            [checked, itemId]
+        );
+        return result;
+    } catch (error) {
+        console.error("Error in updatePackingItemChecked", error.message);
+        throw error;
+    }
+};
+
 //trip_collaborators db ops
 export const getTripCollaborators = async (tripId) => {
     try {

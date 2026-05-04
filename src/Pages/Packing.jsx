@@ -24,12 +24,14 @@ function Packing({ tripId, currentUser }) {
         setLoading(false);
     };
 
-    const fetchPackingItems = async () => {
-        const res = await fetch(`${BASE}/trips/packingItems/${tripId}`);
-        const data = await res.json();
-        setPackingItems(data.packingItems ?? []);
-        setLoading(false);
-    };
+   const fetchPackingItems = async () => {
+    const res = await fetch(`${BASE}/trips/packingItems/${tripId}`);
+    const data = await res.json();
+    setPackingItems(
+        (data.packingItems ?? []).map(item => ({ ...item, checked: item.checked === 1 || item.checked === true }))
+    );
+    setLoading(false);
+};
 
     const fetchPersonalPackingItems = async () => {
         const res = await fetch(`${BASE}/trips/${tripId}/packingItems/${currentUser.username}`);
@@ -71,6 +73,27 @@ function Packing({ tripId, currentUser }) {
         fetchPackingItems();
     };
 
+    const handleToggleChecked = async (itemId, currentChecked) => {
+        // Optimistically update UI instantly
+        setPackingItems(prev =>
+            prev.map(item => item.id === itemId ? { ...item, checked: !currentChecked } : item)
+        );
+
+        const response = await fetch(`${BASE}/trips/packingItems/${itemId}/checked`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ checked: !currentChecked })
+        });
+
+        if (!response.ok) {
+            // Revert if request failed
+            setPackingItems(prev =>
+                prev.map(item => item.id === itemId ? { ...item, checked: currentChecked } : item)
+            );
+            setError("Failed to update item");
+        }
+    };
+
     useEffect(() => {
         if (!currentUser) { navigate("/login"); return; }
         fetchTrip();
@@ -90,7 +113,7 @@ function Packing({ tripId, currentUser }) {
 
     return (
         <div>
-            
+            {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-semibold text-gray-900">Packing List</h1>
@@ -126,7 +149,7 @@ function Packing({ tripId, currentUser }) {
 
             <div className="grid grid-cols-2 gap-6">
 
-                
+                {/* Trip Packing Items */}
                 {!onlyPersonalPackingItems && (
                     <div className="bg-white border border-gray-100 rounded-xl p-5">
                         <h2 className="text-sm font-medium text-gray-900 mb-4">Trip Items</h2>
@@ -157,15 +180,34 @@ function Packing({ tripId, currentUser }) {
                                 {visiblePackingItems.map(packingItem => (
                                     <div
                                         key={packingItem.id}
-                                        onClick={() => setSelectedPackingItemId(packingItem.id)}
-                                        className="flex items-center justify-between group border border-gray-100 rounded-xl px-4 py-3 hover:border-emerald-200 hover:shadow-sm transition-all cursor-pointer"
+                                        className="flex items-center justify-between group border border-gray-100 rounded-xl px-4 py-3 hover:border-emerald-200 hover:shadow-sm transition-all"
                                     >
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-800">{packingItem.name}</p>
-                                            <p className="text-xs text-gray-400 mt-0.5">Packed by {packingItem.bringer}</p>
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() => handleToggleChecked(packingItem.id, packingItem.checked)}
+                                                className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
+                                                    packingItem.checked
+                                                        ? "bg-emerald-500 border-emerald-500"
+                                                        : "border-gray-300 hover:border-emerald-400"
+                                                }`}
+                                            >
+                                                {packingItem.checked && (
+                                                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                            <div>
+                                                <p className={`text-sm font-medium transition-colors ${
+                                                    packingItem.checked ? "line-through text-gray-300" : "text-gray-800"
+                                                }`}>
+                                                    {packingItem.name}
+                                                </p>
+                                                <p className="text-xs text-gray-400 mt-0.5">Packed by {packingItem.bringer}</p>
+                                            </div>
                                         </div>
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); handleDeletePackingItem(packingItem.id); }}
+                                            onClick={() => handleDeletePackingItem(packingItem.id)}
                                             className="text-gray-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 text-xs ml-3"
                                         >
                                             ✕
@@ -177,7 +219,7 @@ function Packing({ tripId, currentUser }) {
                     </div>
                 )}
 
-               
+                {/* Personal Packing Items */}
                 {!onlyCurrentUser && (
                     <div className="bg-white border border-gray-100 rounded-xl p-5">
                         <h2 className="text-sm font-medium text-gray-900 mb-4">My Personal Items</h2>
